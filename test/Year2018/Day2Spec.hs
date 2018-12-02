@@ -8,4 +8,4 @@ day2specs = hspec $ do
   describe "Day 2" $ do
 
     it "returns something" $
-     True `shouldBe` True
+     pendingWith "due tomorrow"

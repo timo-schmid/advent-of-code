@@ -1,45 +1,28 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Main where
 
 import Data.Foldable
-import Data.Maybe
-import Data.List
-import Text.Read
+import Control.Monad.Except
+import Data.String.Interpolate
 import Year2018.Day1
+import Util.FileReader
+import Util.Puzzle
 
-data Star = Star Int Int (Maybe Int) deriving (Read, Eq)
+instance Show ParseError where
+    show (ParseError message) = [i|Error while parsing the file: #{message}|]
 
-instance Show Star where
-    show (Star day star result) = "Day " ++ show day ++ ", Star " ++ show star ++ ": " ++ show result
-
-main :: IO ()
-main = do inputData <- readInputData "input.txt"
-          showResult inputData
-
-showResult :: Either String [Int] -> IO ()
-showResult (Left message) = putStrLn("Error while parsing the file: " ++ message)
-showResult (Right inputData) = traverse_ putStar (stars inputData)
-
-stars :: [Int] -> [Star]
-stars inputData =
-  Star 1 1 (day1star1 inputData) :
-  Star 1 2 (day1star2 inputData) :
+stars :: [Puzzle]
+stars =
+  Puzzle 1 1 day1star1 :
+  Puzzle 1 2 day1star2 :
   []
 
-readInputData :: FilePath -> IO (Either String [Int])
-readInputData = fmap stringsToInts . readLines
+main :: IO ()
+main = runPuzzles "input.txt" >>= showResults
 
-readLines :: FilePath -> IO [String]
-readLines = fmap lines . readFile
+runPuzzles :: FilePath -> IO (Either ParseError [PuzzleResult])
+runPuzzles path = runExceptT (fmap (solvePuzzles stars) (readFrequencyChanges path))
 
-stringsToInts :: [String] -> Either String [Int]
-stringsToInts = traverse readPlusMinus
-
-readPlusMinus :: String -> Either String Int
-readPlusMinus ('+' : rest) = parseNumber "+" rest
-readPlusMinus rest = parseNumber "" rest
-
-parseNumber :: String -> String -> Either String Int
-parseNumber prefix string = fromMaybe (Left ("Could not parse '" ++ prefix ++ string ++ "'")) (fmap Right (readMaybe string))
-
-putStar :: Star -> IO ()
-putStar star = putStrLn(show star)
+showResults :: Either ParseError [PuzzleResult] -> IO ()
+showResults = either print $ traverse_ print
