@@ -2,14 +2,16 @@ module Year2018.Day1(day1star1, day1star2) where
 
 import Data.List
 import qualified Data.Set as S
+import Util.FileReader
+import Util.Puzzle
 
 data Accumulator = Accumulator Int (S.Set Int) deriving (Show, Read, Eq)
 
-day1star1 :: [Int] -> Maybe Int
-day1star1 xs = Just (current (last (scanList xs)))
+day1star1 :: InputData -> Maybe String
+day1star1 (InputData xs _) = Just (show (current (last (scanList xs))))
 
-day1star2 :: [Int] -> Maybe Int
-day1star2 xs = fmap current $ firstDuplicate $ repeatInf xs
+day1star2 :: InputData -> Maybe String
+day1star2 (InputData xs _) = fmap (show . current) (firstDuplicate $ repeatInf xs)
 
 repeatInf :: [Int] -> [Int]
 repeatInf [] = []
@@ -22,7 +24,7 @@ isDuplicate :: Accumulator -> Bool
 isDuplicate (Accumulator current seen) = S.member current seen
 
 scanList :: [Int] -> [Accumulator]
-scanList xs = scanl scanNext initial xs
+scanList = scanl scanNext initial
 
 scanNext :: Accumulator -> Int -> Accumulator
 scanNext (Accumulator current seen) change = Accumulator (current + change) (S.insert current seen)
